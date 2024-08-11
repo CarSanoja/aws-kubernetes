@@ -4,9 +4,12 @@ WORKDIR /app
 
 COPY /analytics/ /app
 
+RUN apt update -y
+RUN apt install build-essential libpq-dev -y
+RUN pip install --upgrade pip setuptools wheel 
 RUN pip install pipenv
-
-RUN pipenv lock --requirements > Pipfile && pipenv install --ignore-pipfile --skip-lock --verbose
+RUN pipenv install --python $(which python) --skip-lock
+RUN pipenv install -r requirements.txt --skip-lock --verbose 
 
 EXPOSE 5153
 

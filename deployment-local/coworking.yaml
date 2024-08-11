@@ -4,7 +4,7 @@ metadata:
   name: coworking
 spec:
   # A local environment doesn't generally have a LoadBalancer, so we use NodePort instead.
-  type: NodePort
+  type: LoadBalancer # NodePort
   selector:
     service: coworking
   ports:
