@@ -1,0 +1,16 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+apscheduler = "==3.10.4"
+flask = "==3.0.2"
+flask-sqlalchemy = "==3.1.1"
+sqlalchemy = "==2.0.27"
+psycopg2-binary = "==2.9.9"
+
+[dev-packages]
+
+[requires]
+python_version = "3.9"
