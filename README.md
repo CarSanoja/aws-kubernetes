@@ -5,6 +5,34 @@ For this project, you are a DevOps engineer who will be collaborating with a tea
 
 ## Getting Started
 
+### Deployment Guide for Coworking Analytics Application
+
+Overview
+
+This repository contains the infrastructure and application code for the Coworking Analytics application. The deployment process leverages modern DevOps practices, including Infrastructure as Code (IaC) and Continuous Integration/Continuous Deployment (CI/CD) to ensure a seamless and automated deployment pipeline. This document is intended to provide an experienced software developer with an understanding of the deployment architecture, tools used, and instructions for releasing new builds.
+Technologies and Tools
+1. Kubernetes (EKS)
+
+    Amazon EKS (Elastic Kubernetes Service): A managed Kubernetes service that simplifies running Kubernetes on AWS without needing to install and operate your own Kubernetes control plane or nodes.
+    Kubernetes Objects: We use Kubernetes objects like Deployments, Services, ConfigMaps, and Secrets to manage application components.
+
+2. Docker
+
+    Docker: The application is containerized using Docker. Each version of the application is built as a Docker image and pushed to Amazon ECR (Elastic Container Registry).
+    Dockerfile: The Dockerfile describes the environment setup, dependencies, and execution command for the container.
+
+3. Amazon ECR
+
+    Amazon ECR: A fully-managed Docker container registry that makes it easy for developers to store, manage, and deploy Docker container images. The Docker images are tagged with the build number and pushed to ECR as part of the CI/CD pipeline.
+
+4. AWS CodeBuild
+
+    AWS CodeBuild: A fully managed build service that compiles source code, runs tests, and produces software packages that are ready to deploy. CodeBuild is used to build the Docker image and push it to ECR.
+
+5. Kubernetes Configuration
+
+    ConfigMaps and Secrets: Used for managing application configurations and sensitive data (such as database credentials) respectively.
+
 ### Dependencies
 #### Local Environment
 1. Python Environment - run Python 3.6+ applications and install Python dependencies via `pip`
@@ -14,6 +42,18 @@ For this project, you are a DevOps engineer who will be collaborating with a tea
 
 #### Remote Resources
 1. AWS CodeBuild - build Docker images remotely
+
+The deployment process begins with the CI/CD pipeline configured in AWS CodeBuild:
+
+    Source Code Changes: Developers push code changes to the repository (e.g., on GitHub).
+    Build Process:
+        CodeBuild triggers a build, pulling the latest code and Dockerfile.
+        The Docker image is built and tagged with the build number.
+        The image is pushed to Amazon ECR.
+    Kubernetes Deployment:
+        The deployment is configured to automatically pull the latest image from ECR.
+        The Kubernetes cluster (EKS) is updated with the new image, ensuring a smooth rollout using Kubernetes' rolling update strategy.
+
 2. AWS ECR - host Docker images
 3. Kubernetes Environment with AWS EKS - run applications in k8s
 4. AWS CloudWatch - monitor activity and logs in EKS
@@ -100,34 +140,47 @@ The benefit here is that it's explicitly set. However, note that the `DB_PASSWOR
 * Generate report for check-ins grouped by users
 `curl <BASE_URL>/api/reports/user_visits`
 
-## Project Instructions
-1. Set up a Postgres database with a Helm Chart
-2. Create a `Dockerfile` for the Python application. Use a base image that is Python-based.
-3. Write a simple build pipeline with AWS CodeBuild to build and push a Docker image into AWS ECR
-4. Create a service and deployment using Kubernetes configuration files to deploy the application
-5. Check AWS CloudWatch for application logs
+### 3. Deployment Configuration
 
-### Deliverables
-1. `Dockerfile`
-2. Screenshot of AWS CodeBuild pipeline
-3. Screenshot of AWS ECR repository for the application's repository
-4. Screenshot of `kubectl get svc`
-5. Screenshot of `kubectl get pods`
-6. Screenshot of `kubectl describe svc <DATABASE_SERVICE_NAME>`
-7. Screenshot of `kubectl describe deployment <SERVICE_NAME>`
-8. All Kubernetes config files used for deployment (ie YAML files)
-9. Screenshot of AWS CloudWatch logs for the application
-10. `README.md` file in your solution that serves as documentation for your user to detail how your deployment process works and how the user can deploy changes. The details should not simply rehash what you have done on a step by step basis. Instead, it should help an experienced software developer understand the technologies and tools in the build and deploy process as well as provide them insight into how they would release new builds.
+The Kubernetes deployment is managed using YAML configuration files stored in the deployment directory. These files define the infrastructure and application setup including Deployments, Services, ConfigMaps, and Secrets.
 
+    Deployments: Manage the application lifecycle, including rolling updates.
+    Services: Expose the application to the outside world through a LoadBalancer.
+    ConfigMaps and Secrets: Store environment variables and sensitive information.
 
-### Stand Out Suggestions
-Please provide up to 3 sentences for each suggestion. Additional content in your submission from the standout suggestions do _not_ impact the length of your total submission.
-1. Specify reasonable Memory and CPU allocation in the Kubernetes deployment configuration
-2. In your README, specify what AWS instance type would be best used for the application? Why?
-3. In your README, provide your thoughts on how we can save on costs?
+### 4. Monitoring and Logging
 
-### Best Practices
-* Dockerfile uses an appropriate base image for the application being deployed. Complex commands in the Dockerfile include a comment describing what it is doing.
-* The Docker images use semantic versioning with three numbers separated by dots, e.g. `1.2.1` and  versioning is visible in the  screenshot. See [Semantic Versioning](https://semver.org/) for more details.
+Kubernetes' built-in monitoring and logging tools provide insights into the application's performance and health. Developers can use tools like kubectl logs and kubectl describe to debug issues.
+Releasing New Builds
 
+### 5. To release a new build, follow these steps:
+
+    Push Code Changes:
+        Commit and push your changes to the repository. This will trigger the CI/CD pipeline.
+
+    Monitor the Build:
+        AWS CodeBuild will automatically start building the new Docker image and push it to ECR.
+
+    Deploy to Kubernetes:
+        Once the image is pushed, the Kubernetes deployment will be updated automatically if configured to pull the latest image tag. Otherwise, you may need to manually update the image field in the Deployment YAML and apply it using:
+
+        
+    ```bash
+    kubectl apply -f ./deployment/coworking.yaml
+    ```
+
+### 6. Verify the Deployment:
+
+    Ensure that the application is running correctly by checking the status of the pods, services, and logs:
+
+    
+    ```bash
+    kubectl get pods
+    kubectl get svc
+    kubectl logs <pod_name>
+    ```
+
+Rollback if Necessary:
+
+    If an issue is detected, you can rollback to a previous version by updating the Docker image tag in the deployment YAML and re-applying it.
 
