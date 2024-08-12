@@ -184,3 +184,4 @@ Rollback if Necessary:
 
     If an issue is detected, you can rollback to a previous version by updating the Docker image tag in the deployment YAML and re-applying it.
 
+# to create a trigger event
